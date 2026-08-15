@@ -37,7 +37,7 @@ export default function Reader() {
   const pages = [...(chapter.pages || [])].sort((a, b) => a.order - b.order);
 
   function handlePageChange(i) {
-    if ((i + 1) % 5 === 0) showInterstitial();
+    if ((i + 1) % 2 === 0) showInterstitial();
   }
 
   function handlePastEnd() {

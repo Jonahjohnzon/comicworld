@@ -197,6 +197,12 @@ export default function ImageZoomViewer({
           {index + 1} / {urls.length}
         </span>
         <div style={{ display: "flex", gap: 6 }}>
+          <button className="icon-btn" onClick={() => goTo(index - 1)} aria-label="Previous page">
+            ‹
+          </button>
+          <button className="icon-btn" onClick={() => goTo(index + 1)} aria-label="Next page">
+            ›
+          </button>
           <button
             className="icon-btn"
             onClick={() => {
