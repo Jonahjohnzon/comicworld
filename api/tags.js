@@ -1,6 +1,6 @@
 // api/tags.js
-const { getDb } = require("../_lib/mongodb");
-const { setCors } = require("../_lib/utils");
+const { getDb } = require("./_lib/mongodb");
+const { setCors } = require("./_lib/utils");
 
 module.exports = async function handler(req, res) {
   setCors(res);
