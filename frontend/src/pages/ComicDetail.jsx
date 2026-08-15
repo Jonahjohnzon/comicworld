@@ -34,8 +34,7 @@ export default function ComicDetail() {
   if (error) return <div className="empty-state">{error}</div>;
   if (!comic) return <div className="spinner" />;
 
-  const chapters = [...(comic.chapters || [])].sort((a, b) => a.number - b.number).reverse();
-  const totalPages = Math.max(1, Math.ceil(chapters.length / CHAPTERS_PER_PAGE));
+  const chapters = [...(comic.chapters || [])].sort((a, b) => a.number - b.number);  const totalPages = Math.max(1, Math.ceil(chapters.length / CHAPTERS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * CHAPTERS_PER_PAGE;
   const pageChapters = chapters.slice(pageStart, pageStart + CHAPTERS_PER_PAGE);
