@@ -45,6 +45,7 @@ export default function Admin() {
   const [comics, setComics] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingSlug, setEditingSlug] = useState(null);
+  const [loadingEdit, setLoadingEdit] = useState(false);
   const [saving, setSaving] = useState(false);
   const [thumbUploading, setThumbUploading] = useState(false);
   const [toast, setToast] = useState("");
@@ -67,17 +68,29 @@ export default function Admin() {
     setTimeout(() => setToast(""), 2500);
   }
 
-  function loadForEdit(comic) {
-    setEditingSlug(comic.slug);
-    setForm({
-      title: comic.title,
-      description: comic.description || "",
-      thumbnail: comic.thumbnail,
-      tags: (comic.tags || []).join(", "),
-      status: comic.status || "ongoing",
-      chapters: comic.chapters || [],
-    });
-    window.scrollTo(0, 0);
+  async function loadForEdit(comicSummary) {
+    // The Existing Comics list only has a summary (no full chapters/pages, just a count)
+    // to keep that list fast. Fetch the real comic before populating the edit form,
+    // otherwise chapters silently come through empty.
+    setEditingSlug(comicSummary.slug);
+    setLoadingEdit(true);
+    try {
+      const { comic } = await api.getComic(comicSummary.slug);
+      setForm({
+        title: comic.title,
+        description: comic.description || "",
+        thumbnail: comic.thumbnail,
+        tags: (comic.tags || []).join(", "),
+        status: comic.status || "ongoing",
+        chapters: comic.chapters || [],
+      });
+      window.scrollTo(0, 0);
+    } catch (err) {
+      showToast(err.message);
+      setEditingSlug(null);
+    } finally {
+      setLoadingEdit(false);
+    }
   }
 
   function resetForm() {
@@ -286,8 +299,8 @@ export default function Admin() {
           <div key={c.slug} className="chapter-row">
             <span className="chapter-name">{c.title}</span>
             <div style={{ display: "flex", gap: 6 }}>
-              <button className="btn btn-ghost" onClick={() => loadForEdit(c)}>
-                Edit
+              <button className="btn btn-ghost" onClick={() => loadForEdit(c)} disabled={loadingEdit}>
+                {loadingEdit && editingSlug === c.slug ? "Loading…" : "Edit"}
               </button>
               <button className="btn btn-ghost" onClick={() => handleDelete(c.slug)}>
                 Delete
