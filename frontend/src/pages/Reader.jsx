@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { api, imageUrl } from "../api";
 import { showBackButton } from "../telegram";
-import AdSlot from "../components/AdSlot";
 import ImageZoomViewer from "../components/ImageZoomViewer";
+import { showInterstitial } from "../ads/monetag";
 
 export default function Reader() {
   const { slug, chapterNum } = useParams();
   const navigate = useNavigate();
   const [comic, setComic] = useState(null);
   const [error, setError] = useState("");
-  const [zoomIndex, setZoomIndex] = useState(null);
 
   useEffect(() => {
     api
@@ -23,11 +22,6 @@ export default function Reader() {
     const cleanup = showBackButton(() => navigate(`/comic/${slug}`));
     return cleanup;
   }, [navigate, slug]);
-
-  // Scroll to top whenever the chapter changes
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [chapterNum]);
 
   if (error) return <div className="empty-state">{error}</div>;
   if (!comic) return <div className="spinner" />;
@@ -42,57 +36,35 @@ export default function Reader() {
   const prevChapter = chapters[currentIndex - 1];
   const pages = [...(chapter.pages || [])].sort((a, b) => a.order - b.order);
 
+  function handlePageChange(i) {
+    if ((i + 1) % 5 === 0) showInterstitial();
+  }
+
+  function handlePastEnd() {
+    if (nextChapter) {
+      showInterstitial(); // chapter transition
+      navigate(`/comic/${slug}/chapter/${nextChapter.number}`);
+    } else {
+      navigate(`/comic/${slug}`); // last chapter, last page — back to detail
+    }
+  }
+
+  function handlePastStart() {
+    if (prevChapter) {
+      navigate(`/comic/${slug}/chapter/${prevChapter.number}`);
+    }
+    // else: already at chapter 1 page 1 — do nothing
+  }
+
   return (
-    <div className="reader">
-      <div className="reader-topbar">
-        <Link to={`/comic/${slug}`} className="reader-title">
-          {comic.title}
-        </Link>
-        <span className="reader-title">Ch. {chapter.number}</span>
-      </div>
-
-      {pages.map((p, i) => (
-        <div key={p.fileId}>
-          <img
-            className="reader-page"
-            src={imageUrl(p.fileId)}
-            alt={`Page ${i + 1}`}
-            loading="lazy"
-            onClick={() => setZoomIndex(i)}
-            style={{ cursor: "zoom-in" }}
-          />
-          {/* Ad every 6 pages keeps it unobtrusive without breaking reading flow */}
-          {(i + 1) % 6 === 0 && i !== pages.length - 1 && <AdSlot />}
-        </div>
-      ))}
-
-      <div className="reader-end">
-        <p>End of Chapter {chapter.number}</p>
-        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 12 }}>
-          {prevChapter && (
-            <button className="btn btn-ghost" onClick={() => navigate(`/comic/${slug}/chapter/${prevChapter.number}`)}>
-              ← Prev
-            </button>
-          )}
-          {nextChapter ? (
-            <button className="btn btn-primary" onClick={() => navigate(`/comic/${slug}/chapter/${nextChapter.number}`)}>
-              Next Chapter →
-            </button>
-          ) : (
-            <button className="btn btn-ghost" onClick={() => navigate(`/comic/${slug}`)}>
-              Back to comic
-            </button>
-          )}
-        </div>
-      </div>
-
-      {zoomIndex !== null && (
-        <ImageZoomViewer
-          urls={pages.map((p) => imageUrl(p.fileId))}
-          initialIndex={zoomIndex}
-          onClose={() => setZoomIndex(null)}
-        />
-      )}
-    </div>
+    <ImageZoomViewer
+      urls={pages.map((p) => imageUrl(p.fileId))}
+      initialIndex={0}
+      title={`${comic.title} · Ch. ${chapter.number}`}
+      onClose={() => navigate(`/comic/${slug}`)}
+      onPageChange={handlePageChange}
+      onPastEnd={handlePastEnd}
+      onPastStart={handlePastStart}
+    />
   );
 }

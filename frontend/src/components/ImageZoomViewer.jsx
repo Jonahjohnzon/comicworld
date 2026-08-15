@@ -14,8 +14,22 @@ function distance(a, b) {
 /**
  * Fullscreen image viewer: pinch/wheel/double-tap to zoom, drag to pan while zoomed,
  * swipe or tap the left/right edges to change page while at 1x.
+ *
+ * onPageChange(index) fires whenever the visible page changes (including the
+ * initial mount), so callers can e.g. trigger an ad every N pages.
+ * onPastEnd() / onPastStart() fire when the user swipes or taps past the last /
+ * first page, so callers can advance to the next/previous chapter instead of
+ * the viewer just no-op'ing at the edges.
  */
-export default function ImageZoomViewer({ urls, initialIndex = 0, onClose }) {
+export default function ImageZoomViewer({
+  urls,
+  initialIndex = 0,
+  onClose,
+  onPageChange,
+  onPastEnd,
+  onPastStart,
+  title,
+}) {
   const [index, setIndex] = useState(initialIndex);
   const [scale, setScale] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
@@ -34,6 +48,8 @@ export default function ImageZoomViewer({ urls, initialIndex = 0, onClose }) {
 
   useEffect(() => {
     resetTransform();
+    onPageChange?.(index);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, resetTransform]);
 
   const clampTranslate = useCallback((tx, ty, s) => {
@@ -48,7 +64,14 @@ export default function ImageZoomViewer({ urls, initialIndex = 0, onClose }) {
   }, []);
 
   function goTo(newIndex) {
-    if (newIndex < 0 || newIndex >= urls.length) return;
+    if (newIndex < 0) {
+      onPastStart?.();
+      return;
+    }
+    if (newIndex >= urls.length) {
+      onPastEnd?.();
+      return;
+    }
     setIndex(newIndex);
   }
 
@@ -170,6 +193,7 @@ export default function ImageZoomViewer({ urls, initialIndex = 0, onClose }) {
           ✕
         </button>
         <span className="zoom-counter">
+          {title ? `${title} — ` : ""}
           {index + 1} / {urls.length}
         </span>
         <div style={{ display: "flex", gap: 6 }}>
