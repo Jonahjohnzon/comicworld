@@ -5,7 +5,7 @@ export function showInterstitial() {
   fn({
     type: "inApp",
     inAppSettings: {
-      frequency: 2,
+      frequency: 1,
       capping: 0.1,
       interval: 60,
       timeout: 5,
