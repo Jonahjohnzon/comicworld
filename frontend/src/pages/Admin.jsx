@@ -157,28 +157,39 @@ export default function Admin() {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    const chapter = form.chapters[chapterIndex];
-    let order = chapter.pages.length;
-    const titleForCaption = form.title || "Untitled";
+    // The OS file picker doesn't guarantee it returns files in click order —
+    // sort by filename (numeric-aware, so "2" sorts before "10") to get a
+    // predictable page order for a multi-select batch like 01/02/03.
+    const sortedFiles = [...files].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" })
+    );
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    const chapter = form.chapters[chapterIndex];
+    const titleForCaption = form.title || "Untitled";
+    // Track the growing page list in a plain local array instead of re-reading
+    // `form` state each loop iteration. `form` here is a snapshot captured when
+    // this function was created and does NOT update mid-loop, so reading from it
+    // on every iteration caused each new page to overwrite the previous one
+    // instead of accumulating.
+    const newPages = [...chapter.pages];
+
+    for (let i = 0; i < sortedFiles.length; i++) {
+      const file = sortedFiles[i];
       try {
         const base64 = await fileToBase64(file);
-        const pageNum = order + 1;
+        const pageNum = newPages.length + 1;
         // Captions are the practical substitute for folders — Telegram channels don't
         // support them, but captioned messages ARE searchable in-channel.
         const caption = `${titleForCaption} · Ch.${chapter.number} · Pg.${pageNum}`;
         const { fileId, messageId } = await api.uploadPage(base64, file.name, caption);
-        updateChapter(chapterIndex, {
-          pages: [...form.chapters[chapterIndex].pages, { fileId, messageId, order: order++ }],
-        });
+        newPages.push({ fileId, messageId, order: newPages.length });
+        updateChapter(chapterIndex, { pages: [...newPages] });
       } catch (err) {
         showToast(`Failed to upload ${file.name}: ${err.message}`);
       }
       // Space out uploads to stay under Telegram's ~1 msg/sec per-chat limit —
       // avoids the flood-control failures seen with rapid back-to-back sends.
-      if (i < files.length - 1) {
+      if (i < sortedFiles.length - 1) {
         await new Promise((resolve) => setTimeout(resolve, 600));
       }
     }
