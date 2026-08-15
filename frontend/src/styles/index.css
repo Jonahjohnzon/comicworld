@@ -775,7 +775,7 @@ img {
 .spotlight {
   display: block;
   position: relative;
-  margin: 4px 16px 20px;
+  margin: 16px 16px 20px;
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
@@ -843,6 +843,10 @@ img {
   border-radius: var(--radius);
   background: var(--surface);
   border: 1px solid var(--border);
+}
+
+.spotlight-wrap {
+  padding-top: 8px;
 }
 
 .card-skeleton {
