@@ -41,7 +41,7 @@ export default function Home() {
 
       {!error && spotlight && (
         <>
-          <Link to={`/comic/${spotlight.slug}`} className="spotlight-wrap halftone">
+          <Link to={`/comic/${spotlight.slug}`} className="spotlight halftone">
             <div className="spotlight-cover">
               <img src={spotlight.thumbnail} alt="" />
               <div className="spotlight-scrim" />
