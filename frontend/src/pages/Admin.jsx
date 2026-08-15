@@ -113,6 +113,12 @@ export default function Admin() {
   }
 
   function removeChapter(index) {
+    const chapter = form.chapters[index];
+    const pageCount = chapter.pages?.length || 0;
+    const label = chapter.title ? `"${chapter.title}"` : `Chapter ${chapter.number}`;
+    if (!confirm(`Delete ${label}${pageCount ? ` and its ${pageCount} page(s)` : ""}? This can't be undone once you save.`)) {
+      return;
+    }
     setForm((f) => ({ ...f, chapters: f.chapters.filter((_, i) => i !== index) }));
   }
 
