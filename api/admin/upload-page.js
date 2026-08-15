@@ -28,22 +28,34 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: "Image too large (max ~9MB)" });
     }
 
-    const form = new FormData();
-    form.append("chat_id", STORAGE_CHANNEL_ID);
-    // sendDocument keeps the original file untouched (no compression), important for comic pages.
-    form.append("document", new Blob([buffer]), filename || "page.jpg");
-    // Telegram channels have no folders, but captions ARE searchable via the channel's
-    // built-in search (magnifying glass), so this is the practical substitute for organizing.
-    if (caption) form.append("caption", caption.slice(0, 1024)); // Telegram's caption limit
+    const sendToTelegram = async () => {
+      const form = new FormData();
+      form.append("chat_id", STORAGE_CHANNEL_ID);
+      // sendDocument keeps the original file untouched (no compression), important for comic pages.
+      form.append("document", new Blob([buffer]), filename || "page.jpg");
+      // Telegram channels have no folders, but captions ARE searchable via the channel's
+      // built-in search (magnifying glass), so this is the practical substitute for organizing.
+      if (caption) form.append("caption", caption.slice(0, 1024)); // Telegram's caption limit
 
-    const tgRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
-      method: "POST",
-      body: form,
-    });
-    const tgData = await tgRes.json();
+      const tgRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
+        method: "POST",
+        body: form,
+      });
+      return tgRes.json();
+    };
+
+    let tgData = await sendToTelegram();
+
+    // Telegram allows roughly 1 message/sec into a chat; rapid page-by-page uploads can
+    // trip this. Telegram tells us exactly how long to wait — honor it and retry once.
+    if (!tgData.ok && tgData.error_code === 429) {
+      const retryAfterSec = tgData.parameters?.retry_after || 2;
+      await new Promise((resolve) => setTimeout(resolve, (retryAfterSec + 0.5) * 1000));
+      tgData = await sendToTelegram();
+    }
 
     if (!tgData.ok) {
-      return res.status(502).json({ error: "Telegram upload failed", details: tgData.description });
+      return res.status(502).json({ error: tgData.description || "Telegram upload failed" });
     }
 
     const fileId = tgData.result.document.file_id;
@@ -51,6 +63,6 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ fileId, messageId });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Upload failed" });
+    return res.status(500).json({ error: `Upload failed: ${err.message}` });
   }
 };

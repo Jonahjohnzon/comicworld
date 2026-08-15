@@ -161,7 +161,8 @@ export default function Admin() {
     let order = chapter.pages.length;
     const titleForCaption = form.title || "Untitled";
 
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       try {
         const base64 = await fileToBase64(file);
         const pageNum = order + 1;
@@ -174,6 +175,11 @@ export default function Admin() {
         });
       } catch (err) {
         showToast(`Failed to upload ${file.name}: ${err.message}`);
+      }
+      // Space out uploads to stay under Telegram's ~1 msg/sec per-chat limit —
+      // avoids the flood-control failures seen with rapid back-to-back sends.
+      if (i < files.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 600));
       }
     }
     e.target.value = "";
