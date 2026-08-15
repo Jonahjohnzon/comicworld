@@ -1,6 +1,6 @@
 import { getInitData } from "./telegram";
 
-// Same-origin: frontend and API are deployed together on Vercel.
+
 const BASE = "/api";
 
 async function request(path, options = {}) {
