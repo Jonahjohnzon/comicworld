@@ -58,9 +58,23 @@ module.exports = async function handler(req, res) {
       return res.status(502).json({ error: tgData.description || "Telegram upload failed" });
     }
 
-    const fileId = tgData.result.document.file_id;
-    const messageId = tgData.result.message_id;
-    return res.status(200).json({ fileId, messageId });
+    // Telegram can classify an uploaded file as something other than a plain "document" —
+    // most notably, .webp files sometimes get auto-detected as a "sticker" instead, since
+    // that's Telegram's native sticker format. Check every shape Telegram might return.
+    const result = tgData.result || {};
+    const media =
+      result.document ||
+      result.sticker ||
+      result.animation ||
+      result.video ||
+      (Array.isArray(result.photo) ? result.photo[result.photo.length - 1] : null);
+
+    if (!media || !media.file_id) {
+      console.error("Unexpected Telegram response shape:", JSON.stringify(tgData));
+      return res.status(502).json({ error: "Telegram accepted the upload but returned an unexpected response shape" });
+    }
+
+    return res.status(200).json({ fileId: media.file_id, messageId: result.message_id });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: `Upload failed: ${err.message}` });
