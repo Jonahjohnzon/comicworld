@@ -1,5 +1,7 @@
-import { Routes, Route, NavLink } from "react-router-dom";
+import { Routes, Route, NavLink, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
+import Categories from "./pages/Categories";
+import CategoryComics from "./pages/CategoryComics";
 import ComicDetail from "./pages/ComicDetail";
 import Reader from "./pages/Reader";
 import Admin from "./pages/Admin";
@@ -9,6 +11,8 @@ export default function App() {
     <div className="app-shell">
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/category/:tag" element={<CategoryComics />} />
         <Route path="/comic/:slug" element={<ComicDetail />} />
         <Route path="/comic/:slug/chapter/:chapterNum" element={<Reader />} />
         <Route path="/admin" element={<Admin />} />
@@ -19,11 +23,18 @@ export default function App() {
 }
 
 function BottomNav() {
+  const location = useLocation();
+  const onCategoryTab = location.pathname.startsWith("/categor"); // covers /categories and /category/:tag
+
   return (
     <nav className="bottom-nav">
       <NavLink to="/" end className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
         <span className="nav-icon">⌂</span>
-        Library
+        All
+      </NavLink>
+      <NavLink to="/categories" className={`nav-item${onCategoryTab ? " active" : ""}`}>
+        <span className="nav-icon">▤</span>
+        Category
       </NavLink>
       <NavLink to="/admin" className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
         <span className="nav-icon">✎</span>

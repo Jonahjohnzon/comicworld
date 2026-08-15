@@ -33,6 +33,7 @@ export const api = {
     request(`/admin/upload-page`, { method: "POST", body: JSON.stringify({ imageBase64, filename, caption }) }),
   deleteMessages: (messageIds) =>
     request(`/admin/delete-messages`, { method: "POST", body: JSON.stringify({ messageIds }) }),
+  getTags: (limit = 12) => request(`/tags?limit=${limit}`),
 };
 
 export function imageUrl(fileId) {
