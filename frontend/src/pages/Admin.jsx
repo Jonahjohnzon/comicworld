@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { api, imageUrl } from "../api";
 import { isInsideTelegram } from "../telegram";
 
@@ -43,6 +43,7 @@ const emptyForm = {
 export default function Admin() {
   const [adminState, setAdminState] = useState("checking"); // checking | allowed | denied
   const [comics, setComics] = useState([]);
+  const [comicSearch, setComicSearch] = useState("");
   const [form, setForm] = useState(emptyForm);
   const [editingSlug, setEditingSlug] = useState(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
@@ -57,11 +58,20 @@ export default function Admin() {
       .catch(() => setAdminState("denied"));
   }, []);
 
+  const refreshComics = useCallback((q) => {
+    api.listComics(q ? { q } : {}).then((data) => setComics(data.comics));
+  }, []);
+
   useEffect(() => {
-    if (adminState === "allowed") {
-      api.listComics().then((data) => setComics(data.comics));
-    }
-  }, [adminState]);
+    if (adminState === "allowed") refreshComics("");
+  }, [adminState, refreshComics]);
+
+  // Debounced search-as-you-type, same pattern as the reader-facing Home search
+  useEffect(() => {
+    if (adminState !== "allowed") return;
+    const t = setTimeout(() => refreshComics(comicSearch), 300);
+    return () => clearTimeout(t);
+  }, [comicSearch, adminState, refreshComics]);
 
   function showToast(msg) {
     setToast(msg);
@@ -201,8 +211,7 @@ export default function Admin() {
       };
       const data = await api.saveComic(payload);
       showToast(data.created ? "Comic created" : "Comic updated");
-      const list = await api.listComics();
-      setComics(list.comics);
+      refreshComics(comicSearch);
       resetForm();
     } catch (err) {
       showToast(err.message);
@@ -326,7 +335,21 @@ export default function Admin() {
       <div className="section-label" style={{ padding: "28px 0 8px" }}>
         Existing Comics ({comics.length})
       </div>
+      <div style={{ padding: "0 16px 4px" }}>
+        <input
+          className="search-input"
+          style={{ width: "100%" }}
+          placeholder="Search comics to edit…"
+          value={comicSearch}
+          onChange={(e) => setComicSearch(e.target.value)}
+        />
+      </div>
       <div className="chapter-list">
+        {comics.length === 0 && (
+          <div className="empty-state" style={{ padding: "24px 0" }}>
+            {comicSearch ? `No comics matching "${comicSearch}"` : "No comics yet"}
+          </div>
+        )}
         {comics.map((c) => (
           <div key={c.slug} className="chapter-row">
             <span className="chapter-name">{c.title}</span>

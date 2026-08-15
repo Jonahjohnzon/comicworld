@@ -3,12 +3,14 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { api, imageUrl } from "../api";
 import { showBackButton } from "../telegram";
 import AdSlot from "../components/AdSlot";
+import ImageZoomViewer from "../components/ImageZoomViewer";
 
 export default function Reader() {
   const { slug, chapterNum } = useParams();
   const navigate = useNavigate();
   const [comic, setComic] = useState(null);
   const [error, setError] = useState("");
+  const [zoomIndex, setZoomIndex] = useState(null);
 
   useEffect(() => {
     api
@@ -51,7 +53,14 @@ export default function Reader() {
 
       {pages.map((p, i) => (
         <div key={p.fileId}>
-          <img className="reader-page" src={imageUrl(p.fileId)} alt={`Page ${i + 1}`} loading="lazy" />
+          <img
+            className="reader-page"
+            src={imageUrl(p.fileId)}
+            alt={`Page ${i + 1}`}
+            loading="lazy"
+            onClick={() => setZoomIndex(i)}
+            style={{ cursor: "zoom-in" }}
+          />
           {/* Ad every 6 pages keeps it unobtrusive without breaking reading flow */}
           {(i + 1) % 6 === 0 && i !== pages.length - 1 && <AdSlot />}
         </div>
@@ -76,6 +85,14 @@ export default function Reader() {
           )}
         </div>
       </div>
+
+      {zoomIndex !== null && (
+        <ImageZoomViewer
+          urls={pages.map((p) => imageUrl(p.fileId))}
+          initialIndex={zoomIndex}
+          onClose={() => setZoomIndex(null)}
+        />
+      )}
     </div>
   );
 }
