@@ -643,3 +643,49 @@ img {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* Add to your existing stylesheet */
+
+.detail-desc-wrap {
+  position: relative;
+}
+
+.detail-desc.clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.desc-toggle {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  margin-top: 2px;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--accent, #6c8cff);
+  cursor: pointer;
+}
+
+.desc-toggle:hover {
+  text-decoration: underline;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.pagination-label {
+  font-size: 0.9em;
+  opacity: 0.75;
+}
+
+.pagination .btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
