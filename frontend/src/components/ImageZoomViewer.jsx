@@ -153,20 +153,7 @@ export default function ImageZoomViewer({
           } else {
             setScale(DOUBLE_TAP_SCALE);
           }
-       } else if (scale === 1) {
-            const rect = containerRef.current.getBoundingClientRect();
-            const relX = (e.clientX - rect.left) / rect.width;
-            const relY = (e.clientY - rect.top) / rect.height;
-            if (relX < 0.3) {
-              goTo(index - 1);
-            } else if (relX > 0.7) {
-              goTo(index + 1);
-            } else if (relY > 0.35 && relY < 0.65) {
-              // Only close on a tap in the true center — middle third both horizontally and vertically
-              onClose();
-            }
-            // else: tap was in the middle column but top/bottom band — no-op
-          }
+        } 
       } else if (scale === 1) {
         // It was a drag at 1x — decide if it was a big enough swipe to change page
         if (dx > SWIPE_THRESHOLD) {
