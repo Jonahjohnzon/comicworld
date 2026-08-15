@@ -7,7 +7,7 @@ export function showInterstitial() {
     inAppSettings: {
       frequency: 2,
       capping: 0.1,
-      interval: 30,
+      interval: 60,
       timeout: 5,
       everyPage: false,
     },
