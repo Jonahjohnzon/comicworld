@@ -849,6 +849,21 @@ img {
   padding-top: 8px;
 }
 
+.spotlight-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(11, 11, 15, 0.55) 0%, rgba(11, 11, 15, 0.15) 35%, rgba(11, 11, 15, 0.97) 90%);
+}
+
+.spotlight-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  filter: brightness(0.82) saturate(0.92);
+}
+
 .card-skeleton {
   aspect-ratio: 2 / 3;
   border-radius: 10px;
