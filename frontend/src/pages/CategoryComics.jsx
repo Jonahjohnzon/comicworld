@@ -1,5 +1,6 @@
+// CategoryComics.jsx
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { showBackButton } from "../telegram";
 import ComicCard from "../components/ComicCard";
@@ -25,15 +26,25 @@ export default function CategoryComics() {
 
   return (
     <div>
-      <Link to="/categories" className="tag-chip category-chip" style={{ marginBottom: 12, display: "inline-flex" }}>
-        ← All categories
-      </Link>
-      <div className="section-label">{tag}</div>
+      <div className="category-hero halftone">
+        <button className="category-hero-back" onClick={() => navigate("/categories")}>
+          ← All categories
+        </button>
+        <div className="category-hero-title">{tag}</div>
+        {comics && comics.length > 0 && (
+          <div className="category-hero-sub">
+            {comics.length} {comics.length === 1 ? "title" : "titles"}
+          </div>
+        )}
+      </div>
 
-      {error && <div className="empty-state">{error}</div>}
+      {error && <div className="empty-state">Couldn't load this shelf. {error}</div>}
       {!error && comics === null && <div className="spinner" />}
       {!error && comics !== null && comics.length === 0 && (
-        <div className="empty-state">No comics found in "{tag}".</div>
+        <div className="empty-state">
+          <h3>Nothing filed here</h3>
+          No comics are tagged "{tag}" yet.
+        </div>
       )}
 
       {!error && comics && comics.length > 0 && (

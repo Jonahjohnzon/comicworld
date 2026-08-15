@@ -677,3 +677,126 @@ img {
   font-size: 0.75em;
   opacity: 0.7;
 }
+
+/* ---------- Category hero ---------- */
+.category-hero {
+  padding: 22px 16px 20px;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+
+.category-hero-back {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 0 12px;
+  cursor: pointer;
+}
+
+.category-hero-back:active {
+  color: var(--accent);
+}
+
+.category-hero-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.category-hero-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.category-hero-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- Tag cloud chips ---------- */
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 18px 16px 20px;
+}
+
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.category-chip:active {
+  border-color: var(--accent);
+}
+
+/* Weight = comic count, not opinion — bigger chip means more titles in that tag */
+.category-chip[data-weight="1"] {
+  font-size: 13.5px;
+  padding: 8px 14px;
+}
+
+.category-chip[data-weight="2"] {
+  font-size: 15px;
+  padding: 9px 16px;
+  background: var(--accent-soft);
+  border-color: rgba(255, 61, 90, 0.35);
+}
+
+.category-chip[data-weight="3"] {
+  font-family: var(--font-display);
+  font-size: 19px;
+  letter-spacing: 0.3px;
+  padding: 8px 18px;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.category-chip[data-weight="3"] .tag-count {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.tag-count {
+  font-size: 0.75em;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.chip-skeleton {
+  height: 32px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.chip-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  animation: shimmer 1.3s infinite;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
