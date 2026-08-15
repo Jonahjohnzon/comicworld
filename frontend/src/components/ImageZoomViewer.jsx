@@ -15,6 +15,10 @@ function distance(a, b) {
  * Fullscreen image viewer: pinch/wheel/double-tap to zoom, drag to pan while zoomed,
  * swipe or tap the left/right edges to change page while at 1x.
  *
+ * Closing only happens via the explicit ✕ button — center taps at 1x are a no-op,
+ * since a close-on-center-tap zone was found confusing (taps anywhere in the middle
+ * column, including near the bottom of the screen, used to close the viewer).
+ *
  * onPageChange(index) fires whenever the visible page changes (including the
  * initial mount), so callers can e.g. trigger an ad every N pages.
  * onPastEnd() / onPastStart() fire when the user swipes or taps past the last /
@@ -33,6 +37,7 @@ export default function ImageZoomViewer({
   const [index, setIndex] = useState(initialIndex);
   const [scale, setScale] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   const containerRef = useRef(null);
   const imgRef = useRef(null);
@@ -48,6 +53,10 @@ export default function ImageZoomViewer({
 
   useEffect(() => {
     resetTransform();
+    // New page is loading — hide the stale frame from the previous page until
+    // the new image actually finishes decoding, so users never see a "stuck"
+    // old page while the next one loads on a slow connection.
+    setImgLoaded(false);
     onPageChange?.(index);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, resetTransform]);
@@ -139,7 +148,8 @@ export default function ImageZoomViewer({
       const dx = e.clientX - dragStart.current.x;
 
       if (!dragStart.current.moved) {
-        // It was a tap, not a drag — check for double-tap first, then left/right/center zones
+        // It was a tap, not a drag — check for double-tap first, then left/right edge zones.
+        // Center taps at 1x are intentionally a no-op: closing only happens via the ✕ button.
         const now = Date.now();
         const isDoubleTap =
           now - lastTap.current.time < DOUBLE_TAP_WINDOW &&
@@ -153,7 +163,16 @@ export default function ImageZoomViewer({
           } else {
             setScale(DOUBLE_TAP_SCALE);
           }
-        } 
+        } else if (scale === 1) {
+          const rect = containerRef.current.getBoundingClientRect();
+          const relX = (e.clientX - rect.left) / rect.width;
+          if (relX < 0.3) {
+            goTo(index - 1);
+          } else if (relX > 0.7) {
+            goTo(index + 1);
+          }
+          // center tap: no-op
+        }
       } else if (scale === 1) {
         // It was a drag at 1x — decide if it was a big enough swipe to change page
         if (dx > SWIPE_THRESHOLD) {
@@ -226,15 +245,18 @@ export default function ImageZoomViewer({
         onPointerCancel={handlePointerUp}
         onWheel={handleWheel}
       >
+        {!imgLoaded && <div className="zoom-page-spinner" />}
         <img
           ref={imgRef}
           src={urls[index]}
           alt={`Page ${index + 1}`}
           className="zoom-image"
           draggable={false}
+          onLoad={() => setImgLoaded(true)}
           style={{
+            opacity: imgLoaded ? 1 : 0,
             transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale})`,
-            transition: dragStart.current ? "none" : "transform 0.15s ease-out",
+            transition: dragStart.current ? "none" : "opacity 0.15s ease-out, transform 0.15s ease-out",
           }}
         />
       </div>
