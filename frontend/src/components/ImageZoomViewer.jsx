@@ -193,7 +193,6 @@ export default function ImageZoomViewer({
           ✕
         </button>
         <span className="zoom-counter">
-          {title ? `${title} — ` : ""}
           {index + 1} / {urls.length}
         </span>
         <div style={{ display: "flex", gap: 6 }}>
