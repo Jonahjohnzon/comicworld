@@ -16,7 +16,7 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: "Server missing TELEGRAM_BOT_TOKEN or TELEGRAM_STORAGE_CHANNEL_ID" });
   }
 
-  const { imageBase64, filename } = req.body || {};
+  const { imageBase64, filename, caption } = req.body || {};
   if (!imageBase64) return res.status(400).json({ error: "imageBase64 is required" });
 
   try {
@@ -32,6 +32,9 @@ module.exports = async function handler(req, res) {
     form.append("chat_id", STORAGE_CHANNEL_ID);
     // sendDocument keeps the original file untouched (no compression), important for comic pages.
     form.append("document", new Blob([buffer]), filename || "page.jpg");
+    // Telegram channels have no folders, but captions ARE searchable via the channel's
+    // built-in search (magnifying glass), so this is the practical substitute for organizing.
+    if (caption) form.append("caption", caption.slice(0, 1024)); // Telegram's caption limit
 
     const tgRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
       method: "POST",
@@ -44,7 +47,8 @@ module.exports = async function handler(req, res) {
     }
 
     const fileId = tgData.result.document.file_id;
-    return res.status(200).json({ fileId });
+    const messageId = tgData.result.message_id;
+    return res.status(200).json({ fileId, messageId });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Upload failed" });

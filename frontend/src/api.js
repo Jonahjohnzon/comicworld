@@ -1,6 +1,6 @@
 import { getInitData } from "./telegram";
 
-
+// Same-origin: frontend and API are deployed together on Vercel.
 const BASE = "/api";
 
 async function request(path, options = {}) {
@@ -29,8 +29,10 @@ export const api = {
   saveComic: (payload) => request(`/comics`, { method: "POST", body: JSON.stringify(payload) }),
   deleteComic: (slug) => request(`/comics/${slug}`, { method: "DELETE" }),
   checkAdmin: () => request(`/admin/check`),
-  uploadPage: (imageBase64, filename) =>
-    request(`/admin/upload-page`, { method: "POST", body: JSON.stringify({ imageBase64, filename }) }),
+  uploadPage: (imageBase64, filename, caption) =>
+    request(`/admin/upload-page`, { method: "POST", body: JSON.stringify({ imageBase64, filename, caption }) }),
+  deleteMessages: (messageIds) =>
+    request(`/admin/delete-messages`, { method: "POST", body: JSON.stringify({ messageIds }) }),
 };
 
 export function imageUrl(fileId) {

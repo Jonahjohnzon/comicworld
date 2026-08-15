@@ -133,6 +133,14 @@ export default function Admin() {
       return;
     }
     setForm((f) => ({ ...f, chapters: f.chapters.filter((_, i) => i !== index) }));
+
+    // Best-effort cleanup in the private channel — doesn't block removing it from the form.
+    const messageIds = (chapter.pages || []).map((p) => p.messageId).filter(Boolean);
+    if (messageIds.length) {
+      api.deleteMessages(messageIds).catch(() => {
+        // Non-fatal: the chapter is still removed from the comic either way.
+      });
+    }
   }
 
   async function handlePagesChange(e, chapterIndex) {
@@ -141,13 +149,18 @@ export default function Admin() {
 
     const chapter = form.chapters[chapterIndex];
     let order = chapter.pages.length;
+    const titleForCaption = form.title || "Untitled";
 
     for (const file of files) {
       try {
         const base64 = await fileToBase64(file);
-        const { fileId } = await api.uploadPage(base64, file.name);
+        const pageNum = order + 1;
+        // Captions are the practical substitute for folders — Telegram channels don't
+        // support them, but captioned messages ARE searchable in-channel.
+        const caption = `${titleForCaption} · Ch.${chapter.number} · Pg.${pageNum}`;
+        const { fileId, messageId } = await api.uploadPage(base64, file.name, caption);
         updateChapter(chapterIndex, {
-          pages: [...form.chapters[chapterIndex].pages, { fileId, order: order++ }],
+          pages: [...form.chapters[chapterIndex].pages, { fileId, messageId, order: order++ }],
         });
       } catch (err) {
         showToast(`Failed to upload ${file.name}: ${err.message}`);
@@ -158,8 +171,13 @@ export default function Admin() {
 
   function removePage(chapterIndex, pageIndex) {
     const chapter = form.chapters[chapterIndex];
+    const removedPage = chapter.pages[pageIndex];
     const pages = chapter.pages.filter((_, i) => i !== pageIndex).map((p, i) => ({ ...p, order: i }));
     updateChapter(chapterIndex, { pages });
+
+    if (removedPage?.messageId) {
+      api.deleteMessages([removedPage.messageId]).catch(() => {});
+    }
   }
 
   async function handleSave() {
@@ -196,9 +214,23 @@ export default function Admin() {
   async function handleDelete(slug) {
     if (!confirm(`Delete "${slug}"? This cannot be undone.`)) return;
     try {
+      // Need the full comic (with all chapters/pages) to know which channel
+      // messages to clean up — the list view only has a summary.
+      const { comic } = await api.getComic(slug);
+      const messageIds = (comic.chapters || [])
+        .flatMap((ch) => ch.pages || [])
+        .map((p) => p.messageId)
+        .filter(Boolean);
+
       await api.deleteComic(slug);
       setComics((c) => c.filter((x) => x.slug !== slug));
       if (editingSlug === slug) resetForm();
+
+      if (messageIds.length) {
+        api.deleteMessages(messageIds).catch(() => {
+          // Non-fatal: comic is already removed from the library either way.
+        });
+      }
     } catch (err) {
       showToast(err.message);
     }
