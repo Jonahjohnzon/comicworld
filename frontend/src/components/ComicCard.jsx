@@ -11,23 +11,27 @@ export default function ComicCard({ comic }) {
     <Link to={`/comic/${comic.slug}`} className="comic-card">
       <div className="comic-cover">
         {comic.status === "completed" && <span className="comic-badge">Done</span>}
+
         {!failed && comic.thumbnail && (
           <img
             src={comic.thumbnail}
-            alt={comic.title}
+            alt=""
             loading="lazy"
             className={loaded ? "loaded" : ""}
             onLoad={() => setLoaded(true)}
             onError={() => setFailed(true)}
           />
         )}
+
         {(failed || !comic.thumbnail) && (
           <div className="comic-cover-fallback halftone">
             <span>{initial}</span>
           </div>
         )}
+
+        <div className="comic-cover-scrim" />
+        <div className="comic-cover-title">{comic.title}</div>
       </div>
-      <div className="comic-title">{comic.title}</div>
     </Link>
   );
 }
