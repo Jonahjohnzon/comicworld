@@ -112,12 +112,7 @@ img {
 }
 
 /* ---------- Comic grid ---------- */
-.grid {
-  padding: 4px 16px 24px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
+
 
 .comic-card {
   display: block;
@@ -651,32 +646,7 @@ img {
   gap: 12px;
 }
 
-.tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 0 16px 16px;
-}
 
-.category-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  background: var(--surface-2);
-}
-
-.category-chip.active {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
-}
-
-.tag-count {
-  font-size: 0.75em;
-  opacity: 0.7;
-}
 
 /* ---------- Category hero ---------- */
 .category-hero {
@@ -799,4 +769,117 @@ img {
 @keyframes shimmer {
   from { transform: translateX(-100%); }
   to { transform: translateX(100%); }
+}
+
+/* ---------- Spotlight ---------- */
+.spotlight {
+  display: block;
+  position: relative;
+  margin: 4px 16px 20px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.spotlight-cover {
+  position: relative;
+  aspect-ratio: 16 / 10;
+}
+
+.spotlight-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.spotlight-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(11, 11, 15, 0) 30%, rgba(11, 11, 15, 0.94) 92%);
+}
+
+.spotlight-body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18px 18px 20px;
+}
+
+.spotlight-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  margin-bottom: 4px;
+}
+
+.spotlight-title {
+  font-family: var(--font-display);
+  font-size: 30px;
+  letter-spacing: 0.3px;
+  line-height: 1.02;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.spotlight-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.spotlight-cta {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 10px 20px;
+  font-size: 13px;
+}
+
+.spotlight-skeleton {
+  margin: 4px 16px 20px;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.card-skeleton {
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.comic-cover {
+  transition: transform 0.12s ease;
+}
+
+.comic-cover:active {
+  transform: scale(0.96);
+}
+
+.comic-cover img {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.comic-cover img.loaded {
+  opacity: 1;
+}
+
+.comic-cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+}
+
+.comic-cover-fallback span {
+  font-family: var(--font-display);
+  font-size: 34px;
+  color: var(--muted);
 }
