@@ -153,6 +153,31 @@ export default function Admin() {
     }
   }
 
+      function moveChapter(index, direction) {
+      setForm((f) => {
+        const chapters = [...f.chapters];
+        const target = index + direction;
+        if (target < 0 || target >= chapters.length) return f;
+        [chapters[index], chapters[target]] = [chapters[target], chapters[index]];
+        return { ...f, chapters };
+      });
+    }
+
+    function movePage(chapterIndex, pageIndex, direction) {
+      setForm((f) => {
+        const chapters = [...f.chapters];
+        const chapter = chapters[chapterIndex];
+        const pages = [...chapter.pages].sort((a, b) => a.order - b.order);
+        const target = pageIndex + direction;
+        if (target < 0 || target >= pages.length) return f;
+        [pages[pageIndex], pages[target]] = [pages[target], pages[pageIndex]];
+        // Re-stamp order 0..n-1 after the swap — order is what the reader actually sorts by,
+        // the array position here is just a working copy.
+        chapters[chapterIndex] = { ...chapter, pages: pages.map((p, i) => ({ ...p, order: i })) };
+        return { ...f, chapters };
+      });
+    }
+
   async function handlePagesChange(e, chapterIndex) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
@@ -323,16 +348,21 @@ export default function Admin() {
 
       <div className="field">
         <label>Chapters</label>
-        {form.chapters.map((chapter, ci) => (
-          <ChapterEditor
-            key={ci}
-            chapter={chapter}
-            onUpdate={(patch) => updateChapter(ci, patch)}
-            onRemove={() => removeChapter(ci)}
-            onPagesChange={(e) => handlePagesChange(e, ci)}
-            onRemovePage={(pi) => removePage(ci, pi)}
-          />
-        ))}
+       {form.chapters.map((chapter, ci) => (
+        <ChapterEditor
+          key={ci}
+          chapter={chapter}
+          isFirst={ci === 0}
+          isLast={ci === form.chapters.length - 1}
+          onMoveUp={() => moveChapter(ci, -1)}
+          onMoveDown={() => moveChapter(ci, 1)}
+          onUpdate={(patch) => updateChapter(ci, patch)}
+          onRemove={() => removeChapter(ci)}
+          onPagesChange={(e) => handlePagesChange(e, ci)}
+          onRemovePage={(pi) => removePage(ci, pi)}
+          onMovePage={(pi, dir) => movePage(ci, pi, dir)}
+        />
+      ))}
         <button className="btn btn-ghost btn-block" onClick={addChapter}>
           + Add Chapter
         </button>
@@ -387,15 +417,34 @@ export default function Admin() {
   );
 }
 
-function ChapterEditor({ chapter, onUpdate, onRemove, onPagesChange, onRemovePage }) {
+function ChapterEditor({
+  chapter,
+  isFirst,
+  isLast,
+  onMoveUp,
+  onMoveDown,
+  onUpdate,
+  onRemove,
+  onPagesChange,
+  onRemovePage,
+  onMovePage,
+}) {
   const fileInputRef = useRef(null);
   const pages = [...chapter.pages].sort((a, b) => a.order - b.order);
 
   return (
     <div className="chapter-editor">
       <div className="chapter-editor-head">
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <button className="chapter-move-btn" onClick={onMoveUp} disabled={isFirst} aria-label="Move chapter up">
+            ▲
+          </button>
+          <button className="chapter-move-btn" onClick={onMoveDown} disabled={isLast} aria-label="Move chapter down">
+            ▼
+          </button>
+        </div>
         <input
-          style={{ width: 70 }}
+          style={{ width: 70, marginLeft: 8 }}
           type="number"
           value={chapter.number}
           onChange={(e) => onUpdate({ number: Number(e.target.value) })}
@@ -418,6 +467,15 @@ function ChapterEditor({ chapter, onUpdate, onRemove, onPagesChange, onRemovePag
             <button className="remove" onClick={() => onRemovePage(i)}>
               ✕
             </button>
+            <div className="page-thumb-nav">
+              <button disabled={i === 0} onClick={() => onMovePage(i, -1)} aria-label="Move page earlier">
+                ‹
+              </button>
+              <span className="page-thumb-num">{i + 1}</span>
+              <button disabled={i === pages.length - 1} onClick={() => onMovePage(i, 1)} aria-label="Move page later">
+                ›
+              </button>
+            </div>
           </div>
         ))}
         <div className="upload-slot" onClick={() => fileInputRef.current.click()}>

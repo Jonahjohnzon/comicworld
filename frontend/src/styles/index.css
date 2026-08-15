@@ -928,3 +928,53 @@ img {
   font-size: 34px;
   color: var(--muted);
 }
+
+.chapter-move-btn {
+  width: 22px;
+  height: 18px;
+  font-size: 10px;
+  line-height: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chapter-move-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.page-thumb-nav {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+  padding: 1px 3px;
+}
+
+.page-thumb-nav button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 13px;
+  padding: 0 3px;
+  cursor: pointer;
+}
+
+.page-thumb-nav button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.page-thumb-num {
+  font-size: 9px;
+  color: var(--text);
+  font-weight: 600;
+}
